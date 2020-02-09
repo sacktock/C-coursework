@@ -9,13 +9,16 @@
 void read_in_file(FILE *infile, struct universe *u){
 	int rows = 0, columns = 0, count = 0, row = 0, column = 0;
 	char ch;
-	
+	if (u == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return; 
+	}
 	if (infile == NULL)
 	{
 		fprintf( stderr,"NULL file"); 
         return; 
 	}
-	
 	while(!feof(infile))
 	{
 		ch = fgetc(infile);
@@ -26,10 +29,9 @@ void read_in_file(FILE *infile, struct universe *u){
 			count++;
 		}
 	}
-	
+	rows++;
 	columns = count / rows;
 	rewind(infile);
-	
 	int** array;
 	array = malloc(rows * sizeof(*array)); /* Assuming `n` is the number of rows */
 	if(!array) /* If `malloc` failed */
@@ -37,7 +39,6 @@ void read_in_file(FILE *infile, struct universe *u){
 	    fprintf( stderr,"Error allocating memory");
 	    exit(-1);
 	}
-	
 	for(int i = 0; i < rows; i++)
 	{
 	    array[i] = malloc(columns * sizeof(**array));
@@ -83,6 +84,11 @@ void write_out_file(FILE *outfile, struct universe *u){
 		fprintf( stderr,"NULL file"); 
         return; 
 	}
+	if (u == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return; 
+	}
 	for(int i = 0; i < u->rows; i++){
 		for(int j = 0; j < u->columns; j++){
 			if (u->array[i][j] == 1){
@@ -97,15 +103,32 @@ void write_out_file(FILE *outfile, struct universe *u){
 }
 
 int is_alive(struct universe *u, int column, int row){
+	if (u == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return 0; 
+	}
+	if (column >= u->columns || row >= u->rows || column < 0 || row < 0){
+		fprintf( stderr,"Index out of bounds exception"); 
+		return 0;
+	}
 	return u->array[row][column];
 }
 
 int will_be_alive(struct universe *u, int column, int row){
+	if (u == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return 0; 
+	}
+	if (column >= u->columns || row >= u->rows || column < 0 || row < 0){
+		fprintf( stderr,"Index out of bounds exception"); 
+		return 0;
+	}
 	int count = 0;
 	if (row+1 < u->rows){
 		if (column+1 < u->columns){
 			count += u->array[(row+1)][(column+1)];
-			
 		}
 		if (column-1 >= 0){
 			count += u->array[(row+1)][(column-1)];
@@ -128,7 +151,7 @@ int will_be_alive(struct universe *u, int column, int row){
 		count += u->array[row][(column-1)];
 	}
 	if (is_alive(u, column, row)){
-		if((count == 3) | (count == 2)){
+		if((count == 3) || (count == 2)){
 			return 1;
 		} else {
 			return 0;
@@ -143,17 +166,26 @@ int will_be_alive(struct universe *u, int column, int row){
 }
 
 int will_be_alive_torus(struct universe *u,  int column, int row){
+	if (u == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return 0; 
+	}
+	if (column >= u->columns || row >= u->rows || column < 0 || row < 0){
+		fprintf( stderr,"Index out of bounds exception"); 
+		return 0;
+	}
 	int count = 0;
-	count += u->array[(row+1) % u->rows][(column+1) % u->columns];
-	count += u->array[row % u->rows][(column+1) % u->columns];
-	count += u->array[(row-1) % u->rows][(column+1) % u->columns];
-	count += u->array[(row+1) % u->rows][(column) % u->columns];
-	count += u->array[(row) % u->rows][(column) % u->columns];
-	count += u->array[(row+1) % u->rows][(column-1) % u->columns];
-	count += u->array[row % u->rows][(column-1) % u->columns];
-	count += u->array[(row-1) % u->rows][(column-1) % u->columns];
+	count += u->array[(row+1) % (u->rows)][(column+1) % (u->columns)];
+	count += u->array[(row) % (u->rows)][(column+1) % (u->columns)];
+	count += u->array[(row-1 + u->rows) % (u->rows)][(column+1) % (u->columns)];
+	count += u->array[(row+1) % (u->rows)][(column) % (u->columns)];
+	count += u->array[(row-1 + u->rows) % (u->rows)][(column) % (u->columns)];
+	count += u->array[(row+1) % (u->rows)][(column-1 + u->columns) % (u->columns)];
+	count += u->array[(row) % (u->rows)][(column-1 + u->columns) % (u->columns)];
+	count += u->array[(row-1 + u->rows) % (u->rows)][(column-1 + u->columns) % (u->columns)];
 	if (is_alive(u, column, row)){
-		if((count == 3) | (count == 2)){
+		if((count == 3) || (count == 2)){
 			return 1;
 		} else {
 			return 0;
@@ -166,27 +198,48 @@ int will_be_alive_torus(struct universe *u,  int column, int row){
 		}
 	}
 }
+
 void evolve(struct universe *u, int (*rule)(struct universe *u, int column, int row)){
+	if (u == NULL || rule == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return; 
+	}
 	int count = 0;
+	int array[u->rows][u->columns];
 	for(int i = 0; i < u->rows; i++){
 		for(int j = 0; j < u->columns; j++){
-			u->array[i][j] = (*rule)(u,i,j);
-			count += u->array[i][j];
+			array[i][j] = (*rule)(u,i,j);
+			count += array[i][j];
 		}
 	}
+	
+	for(int i = 0; i < u->rows; i++){
+		for(int j = 0; j < u->columns; j++){
+			u->array[i][j] = array[i][j];
+		}
+	}
+	
 	u->total += count;
 	u->gen_num++;
 }
 
 void print_statistics(struct universe *u){
+	if (u == NULL)
+	{
+		fprintf( stderr,"NULL pointer exception"); 
+        return; 
+	}
 	double count = 0;
 	for(int i = 0; i < u->rows; i++){
 		for(int j = 0; j < u->columns; j++){
-			count += u->array[i][j];
+			if (u->array[i][j] == 1){
+				count += 1.0;
+			}
 		}
 	};
-	double avg_alive = count / ((u->rows) * (u->columns));
-	double avg = u->total / ((u->rows) * (u->columns) * (u->gen_num));
-	fprintf(stdout, "%f percent of cells currently alive",avg_alive);
-	fprintf(stdout, "%f percent of cells alive of average ",avg);
+	double avg_alive = (count / ((u->rows) * (u->columns)))*100.0;
+	double avg = ((double)u->total / (double)((u->rows) * (u->columns) * (u->gen_num)))*100.0;
+	fprintf(stdout, "%f percent of cells currently alive\n",avg_alive);
+	fprintf(stdout, "%f percent of cells alive of average\n ",avg);
 }

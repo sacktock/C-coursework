@@ -4,8 +4,7 @@
 #include <stddef.h>
 #include <ctype.h>
 #include <math.h>
-#ifndef GOL_H
-#define GOL_H
+
 struct universe {
 	int** array;
 	int rows;
@@ -24,4 +23,4 @@ int will_be_alive_torus(struct universe *u,  int column, int row);
 void evolve(struct universe *u, int (*rule)(struct universe *u, int column, int row));
 void print_statistics(struct universe *u);
 /*You can modify after this line again*/
-#endif //GOL_H
+
