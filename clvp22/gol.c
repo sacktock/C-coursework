@@ -48,8 +48,10 @@ void read_in_file(FILE *infile, struct universe *u){
 				fprintf( stderr,"Invalid input file format exception - check file or user input ends with a newline character before EOF \n");  
 				exit(-1);
 			}
+		} else if (ch == 13) {
+			// do nothing if we get a carriage return only needs to be handled on linux
 		} else { // if we get a character that is not newline, EOF, * or . then print error
-			fprintf( stderr,"Invalid input file format exception - unexpected character\n");  
+			fprintf( stderr,"Invalid input file format exception - unexpected character %c ASCII %d\n",ch,ch);  
 			exit(-1);
 		}
 	}
@@ -93,6 +95,8 @@ void read_in_file(FILE *infile, struct universe *u){
 		} else if (ch == '.'){ // if cell is dead
 			array[row][column] = 0; // set to 0 or 'false'
 			column++; // move to the next column
+		} else if (ch == 13){
+			// do nothing if we get a carriage return only needs to be handled on linux
 		} else if (ch != -1){ // if we see any other char that is not EOF exit 
 			fprintf(stderr, "Unexpected error occured");
 			exit(-1);

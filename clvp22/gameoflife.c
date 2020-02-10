@@ -1,6 +1,6 @@
 #include "gol.h"
 #include <stdio.h>
-#include <stdlib.h>	/* for atof() */
+#include <stdlib.h>
 #include <string.h>
 
 #define TEMP_INPUT "temp_input_file"
