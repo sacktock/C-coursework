@@ -317,7 +317,7 @@ void evolve(struct universe *u, int (*rule)(struct universe *u, int column, int 
 }
 
 void print_statistics(struct universe *u){
-	
+
 	/////////////////////////////////////////////
 	// checking for any exceptions
 	if (u == NULL)
