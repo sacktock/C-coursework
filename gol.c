@@ -30,6 +30,10 @@ void read_in_file(FILE *infile, struct universe *u){
 				columns = count; // set columns to the number of chars seen on the first line so far
 			}
 			rows++; // if newline increment rows
+			if (rows == 1 && columns == 0){
+				fprintf( stderr,"Invalid input file format exception - empty file\n");  
+				exit(-1);
+			}
 			if (count != columns || columns == 0){ 
 				fprintf( stderr,"Invalid input file format exception - rows are not equal lengths\n");  
 				exit(-1); 
@@ -54,6 +58,11 @@ void read_in_file(FILE *infile, struct universe *u){
 			fprintf( stderr,"Invalid input file format exception - unexpected character %c ASCII %d\n",ch,ch);  
 			exit(-1);
 		}
+	}
+	
+	if (rows < 3 || columns < 3){
+		fprintf( stderr,"Invalid input file format exception - expected atleast a 3 x 3 grid\n");  
+		exit(-1);
 	}
 	
 	int** array;

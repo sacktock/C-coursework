@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define TEMP_INPUT "temp_input_file"
 
@@ -10,43 +11,88 @@ int main(int argc, char* argv[]){
 	char* input_filename = NULL;
 	char* output_filename = NULL;
 	int number_of_generations = 5; // default number of evolutions is 5
+	int set_number_of_generations = 0;
 	int print_stats = 0; // print stats at the end?
 	int torus = 0; // use the torus topology?
-	for (int i = 1; i < argc; ++i){
-		if (!strcmp(argv[i],"-i")){ // parse input file argument if possible
-			if (i+1 < argc){
-				input_filename = argv[i+1];
-			} else {
-				fprintf(stderr, "Error invalid arguments - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n");
-				exit(-1);
-			}
-		}
-		if (!strcmp(argv[i], "-o")){ // parse output file argument if possible
-			if (i+1 < argc){
-				output_filename = argv[i+1];
-			} else {
-				fprintf(stderr, "Error invalid arguments - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n");
-				exit(-1);
-			}
-		}
-		if (!strcmp(argv[i],"-g")){ // parse the number of generations / evolutions argument if possible
-			if (i+1 < argc){
-				number_of_generations = atoi(argv[i+1]);
-				if (!number_of_generations){
-					fprintf(stdout, "WARNING: number of evolutions set to 0 - this could be because the argument could not be parsed or you entered 0.\n");
-				}
-				
-			} else{
-				fprintf(stderr, "Error invalid arguments - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n");
-				exit(0);
+	for (int i = 1; i < argc; i++){
+		if (strlen(argv[i])==2 && argv[i][0] == '-'){
+			switch (argv[i][1]){
+				case 'i':
+					if (i+1 < argc){
+						if(!input_filename){
+							input_filename = argv[i+1];
+							if (strlen(input_filename) == 2 && input_filename[0] == '-' && (input_filename[1] == 'i' || input_filename[1] == 'o'
+							 || input_filename[1] == 'g' || input_filename[1] == 's' || input_filename[1] == 't')){
+								fprintf(stderr, "Error cannot give command line switch argument as input file - please specify an input file\n");
+								exit(-1);
+							 }
+						} else {
+							fprintf(stderr, "Error input file name already given - don't give the same arguments twice\n");
+							exit(-1);
+						}
+					} else {
+						fprintf(stderr, "Error invalid arguments - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n");
+						exit(-1);
+					}
+					break;
+				case 'o':
+					if (i+1 < argc){
+						if(!output_filename){
+							output_filename = argv[i+1];
+							if (strlen(output_filename) == 2 && output_filename[0] == '-' && (output_filename[1] == 'i' || output_filename[1] == 'o'
+								|| output_filename[1] == 'g' || output_filename[1] == 's' || output_filename[1] == 't')){
+								fprintf(stderr, "Error cannot give command line switch argument as output file - please specify an input file\n");
+								exit(-1);
+							}
+						} else {
+							fprintf(stderr, "Error output file name already given - don't give the same arguments twice\n");
+							exit(-1);
+						}
+					} else {
+						fprintf(stderr, "Error invalid arguments - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n");
+						exit(-1);
+					}
+					break;
+				case 'g':
+					if (i+1 < argc){
+						if (!set_number_of_generations){
+							for (int j = 0 ; (unsigned) j < strlen(argv[i+1]); j++){
+								if (!isdigit(argv[i+1][j])){
+									fprintf(stderr, "Error number of generations needs to be numeric - please enter a valid number after -g\n");
+									exit(-1);
+								}
+							}
+							number_of_generations = atoi(argv[i+1]);								set_number_of_generations = 1;
+						} else {
+							fprintf(stderr, "Error number of generations already given - don't give the same arguments twice\n");
+							exit(-1);
+						}
+					} else{
+						fprintf(stderr, "Error invalid arguments - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n");
+						exit(0);
+					}
+					break;
+				case 's':
+					if(!print_stats){
+						print_stats = 1;
+					} else {
+						fprintf(stderr, "Error print stats already given - don't give the same arguments twice\n");
+						exit(-1);
+					}
+					break;
+				case 't':
+					if (!torus){
+						torus = 1;
+					} else {
+						fprintf(stderr, "Error torus topology already specified - don't give the same arguments twice\n");
+						exit(-1);
+					}
+					break;
+				default:
+					fprintf(stderr, "Error unknown argument %c - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n", argv[i][1]);
+					exit(-1);
 			}
 			
-		}
-		if (!strcmp(argv[i],"-s")){ // show stats at the end set to 1 / true
-			print_stats = 1;
-		}
-		if (!strcmp(argv[i],"-t")){ // use the torus topology set to 1 / true
-			torus = 1;
 		}
 	}
 	
@@ -55,17 +101,8 @@ int main(int argc, char* argv[]){
 		read_in_file(fp,&v);
 		fclose(fp);
 	} else { // take user input otherwise
-		FILE* fp = fopen(TEMP_INPUT, "w"); // open temporary file
-		char ch;
-		while (!feof(stdin)){ // read user input until EOF / CTRL+D
-			ch = fgetc(stdin); // get next char
-			fputc(ch, fp); // write char to temporary input file
-		}
-		fclose(fp); // close temporary file
-		fp = fopen(TEMP_INPUT, "r"); // open temporary file for reading
-		read_in_file(fp,&v); // read in the file
-		remove(TEMP_INPUT); // remove the temporary file
-		fclose(fp); // close file temporary file pointer
+		FILE* fp = stdin; 
+		read_in_file(fp,&v); // set fp to stdin and read in
 	}
 	
 	for (int i = 0; i < number_of_generations; i++){ // evolve the universe i number of times
