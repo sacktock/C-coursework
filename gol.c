@@ -30,7 +30,7 @@ void read_in_file(FILE *infile, struct universe *u){
 				columns = count; // set columns to the number of chars seen on the first line so far
 			}
 			rows++; // if newline increment rows
-			if (rows == 1 && columns == 0){
+			if (rows == 1 && columns == 0){ // we have an empty file so throw error
 				fprintf( stderr,"Invalid input file format exception - empty file\n");  
 				exit(-1);
 			}
@@ -60,7 +60,7 @@ void read_in_file(FILE *infile, struct universe *u){
 		}
 	}
 	
-	if (rows < 3 || columns < 3){
+	if (rows < 3 || columns < 3){ // we expect atleast a 3 x 3 grid so that all cells have 8 neighbours
 		fprintf( stderr,"Invalid input file format exception - expected atleast a 3 x 3 grid\n");  
 		exit(-1);
 	}
