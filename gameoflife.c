@@ -14,7 +14,7 @@ int main(int argc, char* argv[]){
 	int torus = 0; // use the torus topology?
 	int arg_flag = 0;
 	for (int i = 1; i < argc; i++){
-		if (strlen(argv[i])==2 && argv[i][0] == '-'){
+		if (strlen(argv[i])==2 && argv[i][0] == '-' && !arg_flag){
 			switch (argv[i][1]){
 				case 'i': // if i try to parse the input file
 					if (i+1 < argc){
@@ -74,12 +74,8 @@ int main(int argc, char* argv[]){
 					torus = 1;
 					break;
 				default: // if we get an unexpected argument throw error
-					if (!arg_flag){
-						fprintf(stderr, "Error unknown argument %c - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n", argv[i][1]);
-						exit(-1);
-					} else {
-						arg_flag = 0;
-					}	
+					fprintf(stderr, "Error unknown argument %c - usage: ./gameoflife [-i <input_file> | -o <output_file> | -g <number of evolutions> | -s | -t]\n", argv[i][1]);
+					exit(-1);
 			}
 		} else {
 			if (!arg_flag){
